@@ -69,10 +69,11 @@ public class FifoAlgo implements ElevatorAlgo {
         if (el.getState() == LEVEL) {
             CallForElevator call = calls[elev].peek();
 
-            if (el.getPos() == call.getDest())
-                el.goTo(calls[elev].poll().getDest());
-            else
-                el.goTo(call.getSrc());
+            if (call != null)
+                if (el.getPos() == call.getDest())
+                    el.goTo(calls[elev].poll().getDest());
+                else
+                    el.goTo(call.getSrc());
         }
     }
 
