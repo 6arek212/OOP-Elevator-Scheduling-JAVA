@@ -11,16 +11,17 @@ public class ScanAlgo implements ElevatorAlgo {
 
     private Building building;
     private String algoName = "Scan";
-    private int elevator;
-    private ArrayList<CallForElevator>[] calls;
+    private int elevatorAllocation;
+    private CustomDs[] calls;
+
 
     public ScanAlgo(Building building) {
         this.building = building;
-        calls = new ArrayList[building.numberOfElevetors()];
-
+        calls = new CustomDs[building.numberOfElevetors()];
         for (int i = 0; i < building.numberOfElevetors(); i++) {
-            calls[i] = new ArrayList<>();
+            calls[i] = new CustomDs(i,building.getElevetor(i));
         }
+
     }
 
     @Override
@@ -34,11 +35,66 @@ public class ScanAlgo implements ElevatorAlgo {
     }
 
 
+    // RoundRobin allocation , which splits the load equally between the elevators
+//    @Override
+//    public int allocateAnElevator(CallForElevator c) {
+//        int ans = elevatorAllocation % building.numberOfElevetors();
+//        elevatorAllocation = (elevatorAllocation + 1) % building.numberOfElevetors();
+//        calls[ans].add(c);
+//        return ans;
+//    }
+
+
     @Override
     public int allocateAnElevator(CallForElevator c) {
-        int ans = elevator % building.numberOfElevetors();
-        elevator++;
-        calls[ans].add(c);
+        if (c.getType() == CallForElevator.UP) {
+            int pickedElevator = -1;
+            for (int i = 0; i < building.numberOfElevetors(); i++) {
+                Elevator el = building.getElevetor(i);
+
+                if (el.getState() == Elevator.UP && el.getPos() <= c.getSrc()) {
+                    if (pickedElevator == -1)
+                        pickedElevator = i;
+                        //or has less load
+                    else if (el.getPos() > building.getElevetor(pickedElevator).getPos())
+                        pickedElevator = i;
+                }
+            }
+
+            if (pickedElevator != -1) {
+                calls[pickedElevator].add(c);
+                return pickedElevator;
+            }
+        } else {
+            int pickedElevator = -1;
+            for (int i = 0; i < building.numberOfElevetors(); i++) {
+                Elevator el = building.getElevetor(i);
+
+                if (el.getState() == Elevator.DOWN && el.getPos() >= c.getSrc()) {
+                    if (pickedElevator == -1)
+                        pickedElevator = i;
+                        //or has less load
+                    else if (el.getPos() < building.getElevetor(pickedElevator).getPos())
+                        pickedElevator = i;
+                }
+            }
+
+            if (pickedElevator != -1) {
+                calls[pickedElevator].add(c);
+                return pickedElevator;
+            }
+
+        }
+
+        int roundRobinPick = roundRobinAllocate();
+        calls[roundRobinPick].add(c);
+        return roundRobinPick;
+    }
+
+
+    private int roundRobinAllocate() {
+        int ans = elevatorAllocation % building.numberOfElevetors();
+        elevatorAllocation = (elevatorAllocation + 1) % building.numberOfElevetors();
         return ans;
     }
 
@@ -46,59 +102,13 @@ public class ScanAlgo implements ElevatorAlgo {
     @Override
     public void cmdElevator(int elev) {
         Elevator elv = building.getElevetor(elev);
+
         if (elv.getState() == Elevator.LEVEL) {
-
-
+            int next = calls[elev].getNext();
+            if (next != Integer.MAX_VALUE)
+                elv.goTo(next);
         }
-
-        if (elv.getState() == Elevator.UP) {
-
-
-        }
-
     }
 
-    private void getClosestRequestOnTheWay(int elev) {
-
-        int j = -1;
-        for (int i = 0; i < calls[elev].size(); i++) {
-            CallForElevator c = calls[elev].get(i);
-            if (c.getType() == Elevator.UP && c.getSrc() >= building.getElevetor(i).getPos()){
-
-
-            }
-        }
-
-    }
-
-
-
-    private int getPotentialUpElevator(CallForElevator c) {
-        ArrayList<Integer> upElevators = new ArrayList<>();
-
-        for (int i = 0; i < building.numberOfElevetors(); i++) {
-            Elevator el = building.getElevetor(i);
-            if (el.getState() == Elevator.UP && el.getPos() <= c.getSrc()) {
-                upElevators.add(i);
-            }
-        }
-
-
-        if (upElevators.size() != 0) {
-            int closest = upElevators.get(0);
-            for (int i = 1; i < upElevators.size(); i++) {
-                if (dist(building.getElevetor(upElevators.get(i)), c) < dist(building.getElevetor(closest), c)) {
-                    closest = upElevators.get(i);
-                }
-            }
-            return closest;
-        }
-        return -1;
-    }
-
-
-    private int dist(Elevator el, CallForElevator c) {
-        return Math.abs(c.getSrc() - el.getPos());
-    }
 
 }
