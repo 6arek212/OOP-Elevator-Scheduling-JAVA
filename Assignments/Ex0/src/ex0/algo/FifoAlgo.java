@@ -42,7 +42,9 @@ public class FifoAlgo implements ElevatorAlgo {
 
     @Override
     public int allocateAnElevator(CallForElevator c) {
-        return getLeastLoadedElevator();
+        int elev = getLeastLoadedElevator();
+        calls[elev].add(c);
+        return elev;
     }
 
     private int getLeastLoadedElevator() {
@@ -57,20 +59,18 @@ public class FifoAlgo implements ElevatorAlgo {
     }
 
 
-    private int dist(Elevator el, CallForElevator c) {
-        return Math.abs(c.getSrc() - el.getPos());
-    }
 
 
-    //if its going up then it will go to the nearst call up until the upper call not to the end of the building
+
     @Override
     public void cmdElevator(int elev) {
         Elevator el = building.getElevetor(elev);
-        if (el.getState() == LEVEL) {
+
+        System.out.println(calls[elev].size());
+        if (el.getState() == LEVEL && !calls[elev].isEmpty()) {
             CallForElevator call = calls[elev].peek();
 
-            if (call != null)
-                if (el.getPos() == call.getDest())
+                if (el.getPos() == call.getSrc())
                     el.goTo(calls[elev].poll().getDest());
                 else
                     el.goTo(call.getSrc());
@@ -78,28 +78,7 @@ public class FifoAlgo implements ElevatorAlgo {
     }
 
 
-    private int getPotentialUpElevator(CallForElevator c) {
-        ArrayList<Integer> upElevators = new ArrayList<>();
 
-        for (int i = 0; i < building.numberOfElevetors(); i++) {
-            Elevator el = building.getElevetor(i);
-            if (el.getState() == Elevator.UP && el.getPos() <= c.getSrc()) {
-                upElevators.add(i);
-            }
-        }
-
-
-        if (upElevators.size() != 0) {
-            int closest = upElevators.get(0);
-            for (int i = 1; i < upElevators.size(); i++) {
-                if (dist(building.getElevetor(upElevators.get(i)), c) < dist(building.getElevetor(closest), c)) {
-                    closest = upElevators.get(i);
-                }
-            }
-            return closest;
-        }
-        return -1;
-    }
 
 
 }

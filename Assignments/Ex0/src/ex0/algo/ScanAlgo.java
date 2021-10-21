@@ -70,4 +70,35 @@ public class ScanAlgo implements ElevatorAlgo {
         }
 
     }
+
+
+
+    private int getPotentialUpElevator(CallForElevator c) {
+        ArrayList<Integer> upElevators = new ArrayList<>();
+
+        for (int i = 0; i < building.numberOfElevetors(); i++) {
+            Elevator el = building.getElevetor(i);
+            if (el.getState() == Elevator.UP && el.getPos() <= c.getSrc()) {
+                upElevators.add(i);
+            }
+        }
+
+
+        if (upElevators.size() != 0) {
+            int closest = upElevators.get(0);
+            for (int i = 1; i < upElevators.size(); i++) {
+                if (dist(building.getElevetor(upElevators.get(i)), c) < dist(building.getElevetor(closest), c)) {
+                    closest = upElevators.get(i);
+                }
+            }
+            return closest;
+        }
+        return -1;
+    }
+
+
+    private int dist(Elevator el, CallForElevator c) {
+        return Math.abs(c.getSrc() - el.getPos());
+    }
+
 }
