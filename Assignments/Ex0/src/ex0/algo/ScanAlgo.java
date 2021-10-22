@@ -4,22 +4,22 @@ import ex0.Building;
 import ex0.CallForElevator;
 import ex0.Elevator;
 
-public class CLookAlgo implements ElevatorAlgo {
+public class ScanAlgo implements ElevatorAlgo {
     public static final int UP = 1, DOWN = -1, LEVEL = 0;
 
     private Building building;
     private String algoName = "Scan";
     private int elevatorAllocation;
-    private CLookDs[] callsManager;
+    private CustomDataStructure[] callsManager;
 
 
-    public CLookAlgo(Building building) {
+    public ScanAlgo(Building building) {
         this.building = building;
-        callsManager = new CLookDs[building.numberOfElevetors()];
-        for (int i = 0; i < building.numberOfElevetors(); i++) {
-            callsManager[i] = new CLookDs(building.getElevetor(i));
-        }
+        callsManager = new CustomDataStructure[building.numberOfElevetors()];
 
+        for (int i = 0; i < building.numberOfElevetors(); i++) {
+                callsManager[i] = new ScanDs(building.getElevetor(i));
+        }
     }
 
     @Override
@@ -123,21 +123,21 @@ public class CLookAlgo implements ElevatorAlgo {
     @Override
     public void cmdElevator(int elev) {
         Elevator el = building.getElevetor(elev);
-        CLookDs callManager = callsManager[elev];
+        CustomDataStructure callManager = callsManager[elev];
 
         if (el.getState() == Elevator.LEVEL) {
             int next = callManager.getNext();
             if (next != Integer.MAX_VALUE)
                 el.goTo(next);
         } else if (el.getState() == Elevator.UP &&
-                callManager.getDirection() == CLookDs.UP &&
+                callManager.getDirection() == LookDs.UP &&
                 callManager.hasActiveCalls() &&
                 el.getPos() == callManager.getFirst()) {
             //stop there
             el.stop(callManager.popFirst());
             callManager.stopped();
         } else if (el.getState() == Elevator.DOWN &&
-                callManager.getDirection() == CLookDs.DOWN &&
+                callManager.getDirection() == LookDs.DOWN &&
                 callManager.hasActiveCalls() &&
                 el.getPos() == callManager.getLast()) {
             //stop there

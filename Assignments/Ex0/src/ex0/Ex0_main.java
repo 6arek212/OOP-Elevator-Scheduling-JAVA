@@ -22,9 +22,9 @@ public class Ex0_main {
         // ElevatorAlgo ex0_alg = new ShabatElevAlgo(Simulator_A.getBuilding());  // The simplest algo ever (Shabat Elev).
         // ElevatorAlgo ex0_alg = new ShabatElev2Algo(Simulator_A.getBuilding()); // Shabat Elev with a minor twist
         ElevatorAlgo ex0_alg = new ShabatElev3Algo(Simulator_A.getBuilding());    // Shabat Elev with two trick - replace with your code;
-        ElevatorAlgo fifo = new FifoAlgo(Simulator_A.getBuilding());
-        ElevatorAlgo look = new CLookAlgo(Simulator_A.getBuilding());
+        ElevatorAlgo look = new LookAlgo(Simulator_A.getBuilding());
         ElevatorAlgo cscan = new CScanAlgo(Simulator_A.getBuilding());
+        ElevatorAlgo scan = new ScanAlgo(Simulator_A.getBuilding());
 
         Simulator_A.initAlgo(look); // init the algorithm to be used by the simulator
 

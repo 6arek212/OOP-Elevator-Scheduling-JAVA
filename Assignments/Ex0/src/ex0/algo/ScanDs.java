@@ -5,9 +5,8 @@ import ex0.Elevator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 
-public class CLookDs {
+public class ScanDs implements CustomDataStructure {
     final static int UP = 1, DOWN = -1, ACTIVE = 0;
 
     private ArrayList<Integer> activeCalls;
@@ -18,7 +17,7 @@ public class CLookDs {
     private int goingTo;
 
 
-    public CLookDs(Elevator elevator) {
+    public ScanDs(Elevator elevator) {
         this.elevator = elevator;
         this.activeCalls = new ArrayList<>();
         this.downCalls = new ArrayList<>();
@@ -38,6 +37,11 @@ public class CLookDs {
         return activeCalls.get(0);
     }
 
+
+    @Override
+    public int numberOfCalls() {
+        return activeCalls.size() + downCalls.size() + upCalls.size();
+    }
 
     public int popLast() {
         if (activeCalls.isEmpty())
@@ -67,7 +71,7 @@ public class CLookDs {
             sortedInsert(goingTo, ACTIVE);
     }
 
-
+    @Override
     public int getNext() {
         feedCalls();
 
@@ -90,6 +94,7 @@ public class CLookDs {
     }
 
 
+    @Override
     public void add(CallForElevator c) {
         System.out.println("  " + elevator.getID() + "  " + "incoming call   " + c.getSrc() + "--->" + c.getDest());
 
@@ -133,10 +138,15 @@ public class CLookDs {
 
 
     private void feedCalls() {
-        if (direction == CallForElevator.UP && activeCalls.isEmpty()) {
+        if (direction == CallForElevator.UP && activeCalls.isEmpty() && elevator.getPos() != elevator.getMaxFloor()) {
+            activeCalls.add(elevator.getMaxFloor());
+        } else if (direction == CallForElevator.UP && activeCalls.isEmpty() && elevator.getPos() == elevator.getMaxFloor()) {
             direction = DOWN;
             feedDown();
-        } else if (activeCalls.isEmpty()) {
+        } else if (direction == CallForElevator.DOWN && activeCalls.isEmpty() && elevator.getPos() != elevator.getMinFloor()) {
+            activeCalls.add(elevator.getMinFloor());
+        }
+        else if (direction == CallForElevator.DOWN && activeCalls.isEmpty() && elevator.getPos() == elevator.getMinFloor()) {
             direction = UP;
             feedUp();
         }

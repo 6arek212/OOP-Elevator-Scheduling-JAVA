@@ -42,12 +42,12 @@ public class CScanAlgo implements ElevatorAlgo {
     }
 
 
-    @Override
-    public int allocateAnElevator(CallForElevator c) {
+    private int getOnTheWay(CallForElevator c) {
+        int picked = -1;
+
         if (c.getType() == CallForElevator.UP) {
             //look for the closest up elevator
 
-            int picked = -1;
 
             // FIND THE CLOSEST ELEVATOR THAT PASSES THIS CALL
             for (int i = 0; i < building.numberOfElevetors() / 2; i++) {
@@ -60,32 +60,8 @@ public class CScanAlgo implements ElevatorAlgo {
                 }
             }
 
-            if (picked != -1) {
-                System.out.println(c.getSrc()+" ---> "+c.getDest()+" got allocated to "+picked);
-                callsManager[picked].add(c);
-                return picked;
-            }
-
-
-            //FIND THE ELEVATOR AT THE HIGHEST FLOOR
-            picked = 0;
-            for (int i = 1; i < building.numberOfElevetors() / 2; i++) {
-                Elevator el = building.getElevetor(i);
-                if (el.getPos() > building.getElevetor(picked).getPos())
-                    picked = i;
-            }
-
-
-            System.out.println(c.getSrc()+" ---> "+c.getDest()+" got allocated to "+picked);
-
-            callsManager[picked].add(c);
-            return picked;
-
 
         } else {
-
-
-            int picked = -1;
 
             // FIND THE CLOSEST ELEVATOR THAT PASSES THIS CALL
             for (int i = building.numberOfElevetors() / 2; i < building.numberOfElevetors(); i++) {
@@ -98,12 +74,22 @@ public class CScanAlgo implements ElevatorAlgo {
                 }
             }
 
-            if (picked != -1) {
-                callsManager[picked].add(c);
-                System.out.println(c.getSrc()+" ---> "+c.getDest()+" got allocated to "+picked);
-                return picked;
-            }
 
+        }
+        return picked;
+    }
+
+    private int getB(CallForElevator c) {
+        int picked = 0;
+
+        if (c.getType() == CallForElevator.UP) {
+            //FIND THE ELEVATOR AT THE HIGHEST FLOOR
+            for (int i = 1; i < building.numberOfElevetors() / 2; i++) {
+                Elevator el = building.getElevetor(i);
+                if (el.getPos() > building.getElevetor(picked).getPos())
+                    picked = i;
+            }
+        } else {
             //FIND THE ELEVATOR AT THE LOWEST FLOOR
             picked = building.numberOfElevetors() / 2;
             for (int i = building.numberOfElevetors() / 2; i < building.numberOfElevetors(); i++) {
@@ -112,22 +98,35 @@ public class CScanAlgo implements ElevatorAlgo {
                     picked = i;
             }
 
-            System.out.println(c.getSrc()+" ---> "+c.getDest()+" got allocated to "+picked);
+        }
+        return picked;
+    }
+
+
+    @Override
+    public int allocateAnElevator(CallForElevator c) {
+        int picked = getOnTheWay(c);
+        if (picked != -1) {
+            System.out.println(c.getSrc() + " ---> " + c.getDest() + " got allocated to " + picked);
             callsManager[picked].add(c);
             return picked;
         }
-
+        picked = getB(c);
+        System.out.println(c.getSrc() + " ---> " + c.getDest() + " got allocated to " + picked);
+        callsManager[picked].add(c);
+        return picked;
     }
 
 
     @Override
     public void cmdElevator(int elev) {
         Elevator el = building.getElevetor(elev);
-        CScanDs callManager = callsManager[elev];
+        CustomDataStructure callManager = callsManager[elev];
 
         if (el.getState() == Elevator.LEVEL) {
-            if (callManager.isThereDestinations())
-                el.goTo(callManager.getNext());
+            int next = callManager.getNext();
+            if (next != Integer.MAX_VALUE)
+                el.goTo(next);
         }
 
 
