@@ -25,23 +25,6 @@ public class LookDs implements CustomDataStructure {
         this.upCalls = new ArrayList<>();
     }
 
-    private int dist(int k, int v) {
-        return Math.abs(k - v);
-    }
-
-    public int getEstimatedTimeToGetTo(int x) {
-        int time = 0;
-        for (int j = 0; j < activeCalls.size() && activeCalls.get(j) < x; j++) {
-            if (j == 0)
-                time += dist(elevator.getPos(), activeCalls.get(j)) / elevator.getSpeed();
-            else
-                time += dist(activeCalls.get(j), activeCalls.get(j - 1)) / elevator.getSpeed();
-
-            time += elevator.getTimeForOpen() + elevator.getStartTime() + elevator.getStopTime() + elevator.getTimeForClose();
-        }
-        return time;
-    }
-
 
     @Override
     public int getLast() {
@@ -81,6 +64,9 @@ public class LookDs implements CustomDataStructure {
         return !activeCalls.isEmpty();
     }
 
+    public boolean hasCalls() {
+        return !activeCalls.isEmpty() || !downCalls.isEmpty() || !upCalls.isEmpty();
+    }
 
     @Override
     public int numberOfCalls() {
@@ -102,8 +88,10 @@ public class LookDs implements CustomDataStructure {
         System.out.println("Up " + Arrays.toString(upCalls.toArray()));
         System.out.println("Down " + Arrays.toString(downCalls.toArray()) + "   \n\n");
 
-        if (activeCalls.isEmpty())
+        if (activeCalls.isEmpty()) {
             return Integer.MAX_VALUE;
+        }
+
 
         if (direction == CallForElevator.UP) {
             goingTo = activeCalls.get(0);
@@ -161,13 +149,21 @@ public class LookDs implements CustomDataStructure {
 
 
     private void feedCalls() {
-        if (direction == CallForElevator.UP && activeCalls.isEmpty()) {
+        if (direction == UP && activeCalls.isEmpty()) {
             direction = DOWN;
             feedDown();
         } else if (activeCalls.isEmpty()) {
             direction = UP;
             feedUp();
         }
+
+//        if (direction == UP && activeCalls.isEmpty() && downCalls.isEmpty() && !upCalls.isEmpty()) {
+//            feedUp();
+//        }
+//
+//        if (direction == DOWN && activeCalls.isEmpty() && upCalls.isEmpty() && !downCalls.isEmpty()) {
+//            feedDown();
+//        }
     }
 
 
@@ -209,5 +205,6 @@ public class LookDs implements CustomDataStructure {
             downCalls.add(i, val);
         }
     }
+
 
 }

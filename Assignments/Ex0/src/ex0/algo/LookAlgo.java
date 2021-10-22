@@ -72,7 +72,7 @@ public class LookAlgo implements ElevatorAlgo {
 
         for (int i = 0; i < building.numberOfElevetors(); i++) {
             Elevator el = building.getElevetor(i);
-            if (el.getState() == Elevator.LEVEL) {
+            if (el.getState() == Elevator.LEVEL ) {
                 if (picked == -1)
                     picked = i;
                 else if (dist(call, picked) / building.getElevetor(picked).getSpeed() > dist(call, i) / building.getElevetor(i).getSpeed())
@@ -107,12 +107,12 @@ public class LookAlgo implements ElevatorAlgo {
             return picked;
         }
 
+
         //Other wise use RoundRobin for splitting the load
         int roundRobinPick = roundRobinAllocate();
         callsManager[roundRobinPick].add(c);
         return roundRobinPick;
     }
-
 
 
     private int roundRobinAllocate() {
@@ -130,17 +130,19 @@ public class LookAlgo implements ElevatorAlgo {
 
         if (el.getState() == Elevator.LEVEL) {
             int next = callManager.getNext();
-            if (next != Integer.MAX_VALUE) {
+            if (next != Integer.MAX_VALUE)
                 el.goTo(next);
-            }
 
         } else if (el.getState() == Elevator.UP &&
                 callManager.getDirection() == LookDs.UP &&
                 callManager.hasActiveCalls() &&
                 el.getPos() == callManager.getFirst()) {
+
             //stop there
             el.stop(callManager.popFirst());
             callManager.stopped();
+
+
         } else if (el.getState() == Elevator.DOWN &&
                 callManager.getDirection() == LookDs.DOWN &&
                 callManager.hasActiveCalls() &&
