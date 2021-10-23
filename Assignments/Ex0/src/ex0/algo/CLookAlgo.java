@@ -4,27 +4,27 @@ import ex0.Building;
 import ex0.CallForElevator;
 import ex0.Elevator;
 
-public class CScanAlgo implements ElevatorAlgo {
+public class CLookAlgo implements ElevatorAlgo {
 
     private Building building;
     private String algoName = "Scan";
-    private CScanDs[] callsManager;
+    private CLookDs[] callsManager;
+    private int elevatorAllocationUp;
+    private int elevatorAllocationDown;
 
-    public CScanAlgo(Building building) {
+
+    public CLookAlgo(Building building) {
         this.building = building;
-        callsManager = new CScanDs[building.numberOfElevetors()];
-
-
+        callsManager = new CLookDs[building.numberOfElevetors()];
         for (int i = 0; i < building.numberOfElevetors(); i++) {
             if (i < building.numberOfElevetors() / 2) {
-                callsManager[i] = new CScanDs(building.getElevetor(i), CScanDs.ONLY_UP);
+                callsManager[i] = new CLookDs(building.getElevetor(i), CLookDs.ONLY_UP);
             } else {
-                callsManager[i] = new CScanDs(building.getElevetor(i), CScanDs.ONLY_DOWN);
+                callsManager[i] = new CLookDs(building.getElevetor(i), CLookDs.ONLY_DOWN);
             }
         }
-
-
     }
+
 
     @Override
     public Building getBuilding() {
@@ -41,13 +41,42 @@ public class CScanAlgo implements ElevatorAlgo {
         return Math.abs(building.getElevetor(el).getPos() - c.getSrc());
     }
 
+    // get the fastest elevator to get to call position
+    private int getFastestStaticElevator(CallForElevator call) {
+        int picked = -1;
+
+        if (call.getType() == CallForElevator.UP) {
+            for (int i = 0; i < building.numberOfElevetors() / 2; i++) {
+                Elevator el = building.getElevetor(i);
+                if (el.getState() == Elevator.LEVEL) {
+                    if (picked == -1)
+                        picked = i;
+                    else if (dist(call, picked) / building.getElevetor(picked).getSpeed() > dist(call, i) / building.getElevetor(i).getSpeed())
+                        picked = i;
+                }
+            }
+
+        } else {
+            for (int i = building.numberOfElevetors() / 2; i < building.numberOfElevetors(); i++) {
+                Elevator el = building.getElevetor(i);
+                if (el.getState() == Elevator.LEVEL) {
+                    if (picked == -1)
+                        picked = i;
+                    else if (dist(call, picked) / building.getElevetor(picked).getSpeed() > dist(call, i) / building.getElevetor(i).getSpeed())
+                        picked = i;
+                }
+            }
+        }
+
+        return picked;
+    }
+
 
     private int getOnTheWay(CallForElevator c) {
         int picked = -1;
 
         if (c.getType() == CallForElevator.UP) {
             //look for the closest up elevator
-
 
             // FIND THE CLOSEST ELEVATOR THAT PASSES THIS CALL
             for (int i = 0; i < building.numberOfElevetors() / 2; i++) {
@@ -102,19 +131,42 @@ public class CScanAlgo implements ElevatorAlgo {
         return picked;
     }
 
+    private int roundRobinAllocate(CallForElevator c) {
+        if (c.getType() == CallForElevator.UP) {
+            int ans = elevatorAllocationUp % (building.numberOfElevetors() / 2);
+            elevatorAllocationUp = (elevatorAllocationUp + 1) % (building.numberOfElevetors() / 2);
+            return ans;
+        }
+        int ans = (elevatorAllocationDown % (building.numberOfElevetors() / 2)) + building.numberOfElevetors() / 2;
+        elevatorAllocationDown = ((elevatorAllocationDown + 1) % (building.numberOfElevetors() / 2)) + building.numberOfElevetors() / 2;
+        return ans;
+    }
+
 
     @Override
     public int allocateAnElevator(CallForElevator c) {
-        int picked = getOnTheWay(c);
+        int picked = getFastestStaticElevator(c);
+        if (picked != -1) {
+            callsManager[picked].add(c);
+            return picked;
+        }
+
+        picked = getOnTheWay(c);
         if (picked != -1) {
             System.out.println(c.getSrc() + " ---> " + c.getDest() + " got allocated to " + picked);
             callsManager[picked].add(c);
             return picked;
         }
-        picked = getB(c);
-        System.out.println(c.getSrc() + " ---> " + c.getDest() + " got allocated to " + picked);
-        callsManager[picked].add(c);
-        return picked;
+
+//        picked = getB(c);
+//        System.out.println(c.getSrc() + " ---> " + c.getDest() + " got allocated to " + picked);
+//        callsManager[picked].add(c);
+//        return picked;
+
+
+        int roundRobinPick = roundRobinAllocate(c);
+        callsManager[roundRobinPick].add(c);
+        return roundRobinPick;
     }
 
 
@@ -127,21 +179,15 @@ public class CScanAlgo implements ElevatorAlgo {
             int next = callManager.getNext();
             if (next != Integer.MAX_VALUE)
                 el.goTo(next);
-        }
-
-
-        if (el.getState() == Elevator.UP &&
-                callManager.getDirection() == CScanDs.ONLY_UP &&
+        } else if (el.getState() == Elevator.UP &&
+                callManager.getDirection() == CLookDs.ONLY_UP &&
                 callManager.hasActiveCalls() &&
                 el.getPos() == callManager.getFirst()) {
             //stop there
             el.stop(callManager.popFirst());
             callManager.stopped();
-        }
-
-
-        if (el.getState() == Elevator.DOWN &&
-                callManager.getDirection() == CScanDs.ONLY_DOWN &&
+        } else if (el.getState() == Elevator.DOWN &&
+                callManager.getDirection() == CLookDs.ONLY_DOWN &&
                 callManager.hasActiveCalls() &&
                 el.getPos() == callManager.getLast()) {
             //stop there

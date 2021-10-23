@@ -6,7 +6,7 @@ import ex0.Elevator;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class CScanDs implements CustomDataStructure {
+public class CLookDs implements CustomDataStructure {
     private final int WAITING = 1, ACTIVE = 0;
 
     public final static int ONLY_UP = 1;
@@ -21,7 +21,7 @@ public class CScanDs implements CustomDataStructure {
     private int goingTo;
 
 
-    public CScanDs(Elevator elevator, int direction) {
+    public CLookDs(Elevator elevator, int direction) {
         this.elevator = elevator;
         this.direction = direction;
         activeCalls = new ArrayList<>();
@@ -127,6 +127,7 @@ public class CScanDs implements CustomDataStructure {
         // NOT ON THE WAY -> WAITING LIST
         sortedInsert(c.getSrc(), WAITING);
         sortedInsert(c.getDest(), WAITING);
+
     }
 
 
@@ -152,41 +153,6 @@ public class CScanDs implements CustomDataStructure {
 
 
     private void feedCalls() {
-        //UP
-        if (direction == ONLY_UP) {
-
-            if (activeCalls.isEmpty() && elevator.getPos() != elevator.getMaxFloor()) {
-                isGoingToEnd = true;
-                activeCalls.add(elevator.getMaxFloor());
-                return;
-            }
-
-
-            if (activeCalls.isEmpty() && elevator.getPos() == elevator.getMaxFloor()) {
-                isGoingToEnd = false;
-                activeCalls.add(elevator.getMinFloor());
-                return;
-            }
-        }
-
-
-        //DOWN
-
-        if (direction == ONLY_DOWN) {
-            if (activeCalls.isEmpty() && elevator.getPos() != elevator.getMinFloor()) {
-                isGoingToEnd = true;
-                activeCalls.add(elevator.getMinFloor());
-                return;
-            }
-
-            if (activeCalls.isEmpty() && elevator.getPos() == elevator.getMinFloor()) {
-                isGoingToEnd = false;
-                activeCalls.add(elevator.getMaxFloor());
-                return;
-            }
-        }
-
-
         if (activeCalls.isEmpty()) {
             activeCalls.addAll(waitingCalls);
             waitingCalls.clear();

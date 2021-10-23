@@ -80,6 +80,7 @@ public class LookDs implements CustomDataStructure {
             sortedInsert(goingTo, ACTIVE);
     }
 
+
     @Override
     public int getNext() {
         feedCalls();
@@ -152,18 +153,10 @@ public class LookDs implements CustomDataStructure {
         if (direction == UP && activeCalls.isEmpty()) {
             direction = DOWN;
             feedDown();
-        } else if (activeCalls.isEmpty()) {
+        } else if (direction == DOWN && activeCalls.isEmpty()) {
             direction = UP;
             feedUp();
         }
-
-//        if (direction == UP && activeCalls.isEmpty() && downCalls.isEmpty() && !upCalls.isEmpty()) {
-//            feedUp();
-//        }
-//
-//        if (direction == DOWN && activeCalls.isEmpty() && upCalls.isEmpty() && !downCalls.isEmpty()) {
-//            feedDown();
-//        }
     }
 
 
