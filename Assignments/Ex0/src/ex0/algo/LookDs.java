@@ -77,7 +77,7 @@ public class LookDs implements CustomDataStructure {
     public void stopped() {
         System.out.println("elevator - " + elevator.getID() + " -  stopped at " + elevator.getPos());
         if (elevator.getPos() != goingTo)
-            sortedInsert(goingTo, ACTIVE);
+            sortedInsert(goingTo, activeCalls);
     }
 
 
@@ -118,8 +118,8 @@ public class LookDs implements CustomDataStructure {
             else
                 direction = CallForElevator.DOWN;
 
-            sortedInsert(c.getSrc(), ACTIVE);
-            sortedInsert(c.getDest(), ACTIVE);
+            sortedInsert(c.getSrc(), activeCalls);
+            sortedInsert(c.getDest(), activeCalls);
             return;
         }
 
@@ -127,23 +127,23 @@ public class LookDs implements CustomDataStructure {
         //ON THE WAY
         if (elevator.getState() == Elevator.UP && c.getSrc() >= elevator.getPos() && c.getType() == CallForElevator.UP && direction == UP ||
                 elevator.getState() == Elevator.DOWN && c.getSrc() <= elevator.getPos() && c.getType() == CallForElevator.DOWN && direction == DOWN) {
-            sortedInsert(c.getSrc(), ACTIVE);
-            sortedInsert(c.getDest(), ACTIVE);
+            sortedInsert(c.getSrc(), activeCalls);
+            sortedInsert(c.getDest(), activeCalls);
             return;
         }
 
 
         //waiting up
         if (c.getType() == CallForElevator.UP) {
-            sortedInsert(c.getSrc(), UP);
-            sortedInsert(c.getDest(), UP);
+            sortedInsert(c.getSrc(), upCalls);
+            sortedInsert(c.getDest(), upCalls);
             return;
         }
 
         //waiting down
         if (c.getType() == CallForElevator.DOWN) {
-            sortedInsert(c.getSrc(), DOWN);
-            sortedInsert(c.getDest(), DOWN);
+            sortedInsert(c.getSrc(), downCalls);
+            sortedInsert(c.getDest(), downCalls);
         }
 
     }
@@ -172,31 +172,15 @@ public class LookDs implements CustomDataStructure {
     }
 
 
-    private void sortedInsert(int val, int type) {
+    private void sortedInsert(int val , ArrayList<Integer> list) {
         int i = 0;
 
-        if (type == ACTIVE) {
-            while (i < activeCalls.size() && val >= activeCalls.get(i)) {
-                if (val == activeCalls.get(i))
-                    return;
-                i++;
-            }
-            activeCalls.add(i, val);
-        } else if (type == UP) {
-            while (i < upCalls.size() && val >= upCalls.get(i)) {
-                if (val == upCalls.get(i))
-                    return;
-                i++;
-            }
-            upCalls.add(i, val);
-        } else {
-            while (i < downCalls.size() && val >= downCalls.get(i)) {
-                if (val == downCalls.get(i))
-                    return;
-                i++;
-            }
-            downCalls.add(i, val);
+        while (i < list.size() && val >= list.get(i)) {
+            if (val == list.get(i))
+                return;
+            i++;
         }
+        list.add(i, val);
     }
 
 
