@@ -4,8 +4,6 @@ import ex0.Building;
 import ex0.CallForElevator;
 import ex0.Elevator;
 
-import java.util.HashSet;
-
 public class LookAlgo implements ElevatorAlgo {
     public static final int UP = 1, DOWN = -1, LEVEL = 0;
 
@@ -33,29 +31,27 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    private int getOnTheWayElevator(CallForElevator c) {
+    public int getOnTheWayElevator(CallForElevator c) {
         int pickedElevator = -1;
 
         if (c.getType() == CallForElevator.UP) {
             for (int i = 0; i < building.numberOfElevetors(); i++) {
                 Elevator el = building.getElevetor(i);
-
-                if (el.getState() == Elevator.UP && el.getPos() <= c.getSrc()) {
+                if (callsManager[i].getDirection() == LookDs.UP && el.getPos() <= c.getSrc()) {
                     if (pickedElevator == -1)
                         pickedElevator = i;
-                    else if (el.getPos() > building.getElevetor(pickedElevator).getPos())
+                    else if (((LookDs) callsManager[pickedElevator]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c))
                         pickedElevator = i;
                 }
             }
-
         } else {
             for (int i = 0; i < building.numberOfElevetors(); i++) {
                 Elevator el = building.getElevetor(i);
 
-                if (el.getState() == Elevator.DOWN && el.getPos() >= c.getSrc()) {
+                if (callsManager[i].getDirection() == LookDs.DOWN && el.getPos() >= c.getSrc()) {
                     if (pickedElevator == -1)
                         pickedElevator = i;
-                    else if (el.getPos() < building.getElevetor(pickedElevator).getPos())
+                    else if (((LookDs) callsManager[pickedElevator]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c))
                         pickedElevator = i;
                 }
             }
@@ -65,16 +61,23 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    // get the fastest elevator to get to call position
-    private int getFastestStaticElevator(CallForElevator c) {
+    // get the fastest idle elevator that can get this call
+    public int getFastestStaticElevator(CallForElevator c) {
         int picked = -1;
+        double pickedTime = -1;
         for (int i = 0; i < building.numberOfElevetors(); i++) {
-            Elevator el = building.getElevetor(i);
-            if (el.getState() == Elevator.LEVEL) {
-                if (picked == -1)
+            if (callsManager[i].getDirection() == LookDs.LEVEL) {
+                Elevator e = building.getElevetor(i);
+                double time = e.getTimeForClose() + e.getStartTime() + e.getStopTime() + e.getTimeForOpen()
+                        + dist(c, i) / e.getSpeed();
+
+                if (picked == -1) {
                     picked = i;
-                else if (dist(c, picked) / building.getElevetor(picked).getSpeed() > dist(c, i) / building.getElevetor(i).getSpeed())
+                    pickedTime = time;
+                } else if (pickedTime > time) {
                     picked = i;
+                    pickedTime = time;
+                }
             }
         }
         return picked;
@@ -83,6 +86,44 @@ public class LookAlgo implements ElevatorAlgo {
 
     private int dist(CallForElevator c, int el) {
         return Math.abs(building.getElevetor(el).getPos() - c.getSrc());
+    }
+
+
+    // if there is a call and no elevator can pick it up then get the fastest DOWN elevator that can go to this call
+    public int getOptimal(CallForElevator c) {
+        int picked = -1;
+
+        if (c.getType() == CallForElevator.UP) {
+            for (int i = 0; i < building.numberOfElevetors(); i++) {
+                if (callsManager[i].getDirection() == LookDs.DOWN) {
+                    if (picked == -1)
+                        picked = i;
+                    else if (
+                            ((LookDs) callsManager[picked]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
+                                    && !callsManager[i].hasActiveCalls()
+                    ) {
+                        picked = i;
+                    }
+                }
+            }
+        } else {
+
+            for (int i = 0; i < building.numberOfElevetors(); i++) {
+                if (callsManager[i].getDirection() == LookDs.UP) {
+                    if (picked == -1)
+                        picked = i;
+                    else if (
+                            ((LookDs) callsManager[picked]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
+                                    && !callsManager[i].hasActiveCalls()
+                    ) {
+                        picked = i;
+                    }
+                }
+            }
+
+        }
+
+        return picked;
     }
 
 
@@ -99,6 +140,13 @@ public class LookAlgo implements ElevatorAlgo {
 
         //search for the closest elevator that is on the way of this call
         picked = getOnTheWayElevator(c);
+        if (picked != -1) {
+            callsManager[picked].add(c);
+            return picked;
+        }
+
+
+        picked = getOptimal(c);
         if (picked != -1) {
             callsManager[picked].add(c);
             return picked;
