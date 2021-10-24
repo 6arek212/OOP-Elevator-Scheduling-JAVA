@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class LookDs implements CustomDataStructure {
-    final static int UP = 1, DOWN = -1, ACTIVE = 0;
+    final static int UP = 1, DOWN = -1, LEVEL = 0, ACTIVE = 0;
 
     private ArrayList<Integer> activeCalls;
     private ArrayList<Integer> downCalls;
     private ArrayList<Integer> upCalls;
-    private int direction;
+    private int direction = 0;
     private Elevator elevator;
     private int goingTo;
 
@@ -23,6 +23,7 @@ public class LookDs implements CustomDataStructure {
         this.activeCalls = new ArrayList<>();
         this.downCalls = new ArrayList<>();
         this.upCalls = new ArrayList<>();
+        this.direction = LEVEL;
     }
 
 
@@ -73,6 +74,133 @@ public class LookDs implements CustomDataStructure {
         return downCalls.size() + upCalls.size() + activeCalls.size();
     }
 
+    public int numberOfActiveCalls() {
+        return activeCalls.size();
+    }
+
+    private int dist(int floor1, int floor2) {
+        return Math.abs(floor1 - floor2);
+    }
+
+
+    public int estimatedTimeToGet(CallForElevator call) {
+        int time = 0;
+        // if it on the way -> time till get to this call
+        if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc()) {
+            time = estimatedTimeToGet(call.getSrc());
+        }
+
+        // down -> active + call
+        else if (direction == DOWN && call.getType() == CallForElevator.UP || direction == UP && call.getType() == CallForElevator.DOWN) {
+            if (hasActiveCalls()) {
+                time += timeToFinishActive();
+                time += dist(getLast(), call.getSrc()) / elevator.getSpeed();
+            } else {
+                time += dist(elevator.getPos(), call.getSrc()) / elevator.getSpeed();
+            }
+
+        } else if (direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
+            time = estimatedTimeToGet(call.getSrc());
+        }
+        return time;
+    }
+
+
+    public int timeToFinishActive() {
+        int time = 0;
+        if (!activeCalls.isEmpty()) {
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE) {
+                time += elevator.getStopTime() + elevator.getTimeForClose();
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+            }
+
+            for (int j = 0; j < activeCalls.size(); j++) {
+                int i = 0;
+                if (direction == DOWN) {
+                    j = activeCalls.size() - j;
+                } else
+                    i = j;
+
+
+                time += elevator.getStartTime() + elevator.getTimeForOpen();
+
+                if (i == 0 && direction == UP || i == activeCalls.size() - 1 && direction == DOWN) {
+                    if (goingTo != Integer.MAX_VALUE) {
+                        time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+                    } else
+                        time += dist(elevator.getPos(), activeCalls.get(i)) / elevator.getSpeed();
+                } else {
+                    if (direction == UP)
+                        time += dist(activeCalls.get(i - 1), activeCalls.get(i)) / elevator.getSpeed();
+                    else {
+                        time += dist(activeCalls.get(i + 1), activeCalls.get(i)) / elevator.getSpeed();
+                    }
+                }
+                time += elevator.getStopTime() + elevator.getTimeForClose();
+            }
+
+        }
+
+        return time;
+    }
+
+
+
+
+
+    private int estimatedTimeToGet(int floor) {
+        int time = 0;
+        if (direction == UP && !activeCalls.isEmpty()) {
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
+
+            for (int i = 0; i < activeCalls.size() && activeCalls.get(i) < floor; i++) {
+                if (i == 0) {
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+
+                } else {
+                    time += dist(activeCalls.get(i - 1), activeCalls.get(i)) / elevator.getSpeed();
+
+                }
+                time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
+
+
+            }
+
+        } else if (direction == DOWN) {
+
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
+
+            for (int i = activeCalls.size() - 1; i >= 0 && activeCalls.get(i) > floor; i--) {
+                if (i == activeCalls.size() - 1) {
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+
+                } else {
+                    time += dist(activeCalls.get(i + 1), activeCalls.get(i)) / elevator.getSpeed();
+                }
+                time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
+            }
+        }
+
+        return time;
+    }
+
+
     @Override
     public void stopped() {
         System.out.println("elevator - " + elevator.getID() + " -  stopped at " + elevator.getPos());
@@ -90,6 +218,8 @@ public class LookDs implements CustomDataStructure {
         System.out.println("Down " + Arrays.toString(downCalls.toArray()) + "   \n\n");
 
         if (activeCalls.isEmpty()) {
+            goingTo = Integer.MAX_VALUE;
+            direction = LEVEL;
             return Integer.MAX_VALUE;
         }
 
@@ -125,8 +255,8 @@ public class LookDs implements CustomDataStructure {
 
 
         //ON THE WAY
-        if (elevator.getState() == Elevator.UP && c.getSrc() >= elevator.getPos() && c.getType() == CallForElevator.UP && direction == UP ||
-                elevator.getState() == Elevator.DOWN && c.getSrc() <= elevator.getPos() && c.getType() == CallForElevator.DOWN && direction == DOWN) {
+        if (c.getSrc() >= elevator.getPos() && c.getType() == CallForElevator.UP && direction == UP ||
+                c.getSrc() <= elevator.getPos() && c.getType() == CallForElevator.DOWN && direction == DOWN) {
             sortedInsert(c.getSrc(), activeCalls);
             sortedInsert(c.getDest(), activeCalls);
             return;
@@ -150,13 +280,19 @@ public class LookDs implements CustomDataStructure {
 
 
     private void feedCalls() {
-        if (direction == UP && activeCalls.isEmpty()) {
+        if (direction == UP && activeCalls.isEmpty() && !downCalls.isEmpty()) {
             direction = DOWN;
             feedDown();
-        } else if (direction == DOWN && activeCalls.isEmpty()) {
+        } else if (direction == UP && activeCalls.isEmpty()) {
+            feedUp();
+        } else if (direction == DOWN && activeCalls.isEmpty() && !upCalls.isEmpty()) {
             direction = UP;
             feedUp();
+        } else if (direction == DOWN && activeCalls.isEmpty()) {
+            feedDown();
         }
+
+
     }
 
 
@@ -172,7 +308,7 @@ public class LookDs implements CustomDataStructure {
     }
 
 
-    private void sortedInsert(int val , ArrayList<Integer> list) {
+    private void sortedInsert(int val, ArrayList<Integer> list) {
         int i = 0;
 
         while (i < list.size() && val >= list.get(i)) {

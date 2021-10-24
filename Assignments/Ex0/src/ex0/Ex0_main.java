@@ -21,8 +21,6 @@ public class Ex0_main {
         Simulator_A.initData(stage, callFile);  // init the simulator data: {building, calls}.
         ElevatorAlgo look = new LookAlgo2(Simulator_A.getBuilding());
         ElevatorAlgo clook = new CLookAlgo(Simulator_A.getBuilding());
-        ElevatorAlgo scan = new ScanAlgo(Simulator_A.getBuilding());
-        ElevatorAlgo sstf = new SSTFAlgo(Simulator_A.getBuilding());
 
         Simulator_A.initAlgo(look); // init the algorithm to be used by the simulator
 

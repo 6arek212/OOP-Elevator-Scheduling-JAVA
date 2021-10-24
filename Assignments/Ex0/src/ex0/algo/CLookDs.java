@@ -79,6 +79,59 @@ public class CLookDs implements CustomDataStructure {
         return !activeCalls.isEmpty();
     }
 
+    private int dist(int floor1, int floor2) {
+        return Math.abs(floor1 - floor2);
+    }
+
+
+    public int estimatedTimeToGet(int floor) {
+        int time = 0;
+        if (direction == ONLY_UP && !activeCalls.isEmpty()) {
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
+
+            for (int i = 0; i < activeCalls.size() && activeCalls.get(i) < floor; i++) {
+                if (i == 0) {
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+
+                } else {
+                    time += dist(activeCalls.get(i - 1), activeCalls.get(i)) / elevator.getSpeed();
+
+                }
+                time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
+
+
+            }
+
+        } else if (direction == ONLY_DOWN) {
+
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
+
+            for (int i = activeCalls.size() - 1; i >= 0 && activeCalls.get(i) > floor; i--) {
+                if (i == activeCalls.size() - 1) {
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+
+                } else {
+                    time += dist(activeCalls.get(i + 1), activeCalls.get(i)) / elevator.getSpeed();
+                }
+                time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
+            }
+        }
+
+        return time;
+    }
+
 
     @Override
     public int getNext() {
@@ -116,8 +169,8 @@ public class CLookDs implements CustomDataStructure {
 
 
         //ON THE WAY
-        if (elevator.getState() == Elevator.UP && direction == ONLY_UP && c.getSrc() >= elevator.getPos() ||
-                elevator.getState() == Elevator.DOWN && direction == ONLY_DOWN && c.getSrc() <= elevator.getPos()) {
+        if ( direction == ONLY_UP && c.getSrc() >= elevator.getPos() ||
+                 direction == ONLY_DOWN && c.getSrc() <= elevator.getPos()) {
             sortedInsert(c.getSrc(), ACTIVE);
             sortedInsert(c.getDest(), ACTIVE);
             return;
