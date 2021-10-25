@@ -171,7 +171,7 @@ public class LookDs implements CustomDataStructure {
 
 
     // time to finish active calls
-    public int timeToFinishActive() {
+    private int timeToFinishActive() {
         int time = 0;
         if (!activeCalls.isEmpty()) {
             if (elevator.getState() == Elevator.LEVEL) {
