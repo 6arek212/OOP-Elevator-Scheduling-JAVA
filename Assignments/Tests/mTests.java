@@ -2,8 +2,9 @@ import ex0.Building;
 import ex0.CallForElevator;
 import ex0.algo.LookDs;
 import ex0.simulator.Simulator_A;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class mTests {
     Building building;

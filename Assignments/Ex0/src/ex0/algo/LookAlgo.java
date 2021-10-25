@@ -31,7 +31,8 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    public int getOnTheWayElevator(CallForElevator c) {
+    // search for the fastest elevator that can pick this call
+    public int getPickUpElevator(CallForElevator c) {
         int pickedElevator = -1;
 
         if (c.getType() == CallForElevator.UP) {
@@ -89,7 +90,7 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    // if there is a call and no elevator can pick it up then get the fastest DOWN elevator that can go to this call
+    // if there is an UP call and no elevator can pick it up then get the fastest DOWN elevator that can go to this call
     public int getOptimal(CallForElevator c) {
         int picked = -1;
 
@@ -127,7 +128,6 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    //the calls that are going to move more than half of the building going to the fastest elevators
     @Override
     public int allocateAnElevator(CallForElevator c) {
 
@@ -139,13 +139,14 @@ public class LookAlgo implements ElevatorAlgo {
         }
 
         //search for the closest elevator that is on the way of this call
-        picked = getOnTheWayElevator(c);
+        picked = getPickUpElevator(c);
         if (picked != -1) {
             callsManager[picked].add(c);
             return picked;
         }
 
 
+        //
         picked = getOptimal(c);
         if (picked != -1) {
             callsManager[picked].add(c);

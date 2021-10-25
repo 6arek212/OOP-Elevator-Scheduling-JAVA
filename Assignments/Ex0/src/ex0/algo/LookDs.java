@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class LookDs implements CustomDataStructure {
-    final static int UP = 1, DOWN = -1, LEVEL = 0, ACTIVE = 0;
+    final static int UP = 1, DOWN = -1, LEVEL = 0;
 
     private ArrayList<Integer> activeCalls;
     private ArrayList<Integer> downCalls;
     private ArrayList<Integer> upCalls;
-    private int direction = 0;
+    private int direction;
     private Elevator elevator;
     private int goingTo;
 
@@ -146,23 +146,31 @@ public class LookDs implements CustomDataStructure {
         if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc()) {
             time = estimatedTimeToGet(call.getSrc());
         }
-
+        else if (direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
+            time = estimatedTimeToGet(call.getSrc());
+        }
         // down -> active + call
-        else if (direction == DOWN && call.getType() == CallForElevator.UP || direction == UP && call.getType() == CallForElevator.DOWN) {
+        else if (direction == UP && call.getType() == CallForElevator.DOWN) {
+            time += timeToFinishActive();
             if (hasActiveCalls()) {
-                time += timeToFinishActive();
                 time += dist(getLast(), call.getSrc()) / elevator.getSpeed();
             } else {
                 time += dist(elevator.getPos(), call.getSrc()) / elevator.getSpeed();
             }
-
-        } else if (direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
-            time = estimatedTimeToGet(call.getSrc());
+        }  else if (direction == DOWN && call.getType() == CallForElevator.UP) {
+            time += timeToFinishActive();
+            if (hasActiveCalls()) {
+                time += dist(getFirst(), call.getSrc()) / elevator.getSpeed();
+            } else {
+                time += dist(elevator.getPos(), call.getSrc()) / elevator.getSpeed();
+            }
         }
+
         return time;
     }
 
 
+    // time to finish active calls
     public int timeToFinishActive() {
         int time = 0;
         if (!activeCalls.isEmpty()) {
@@ -206,6 +214,7 @@ public class LookDs implements CustomDataStructure {
     }
 
 
+    // time to get to this floor
     private int estimatedTimeToGet(int floor) {
         int time = 0;
         if (direction == UP && !activeCalls.isEmpty()) {
@@ -253,6 +262,8 @@ public class LookDs implements CustomDataStructure {
 
         return time;
     }
+
+
 
 
     @Override
