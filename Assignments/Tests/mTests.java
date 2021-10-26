@@ -41,7 +41,7 @@ public class mTests {
 
             @Override
             public int getSrc() {
-                return 0;
+                return 2;
             }
 
             @Override
@@ -71,14 +71,34 @@ public class mTests {
     @Test
     public void getNext() {
         lookDs.add(call);
-        assertEquals(lookDs.getNext(), 0);
+        assertEquals(lookDs.getNext(), 2);
         assertEquals(lookDs.getNext(), 5);
     }
 
 
     @Test
     public void getPickUpElevator() {
+        int pickedElevator = lookAlgo.getPickUpElevator(call);
+        assertEquals(3, pickedElevator);
+        // 3 is ths the fastest elevator
+    }
 
+    @Test
+    public void getFastestStaticElevator() {
+        int pickedElevator = lookAlgo.getFastestStaticElevator(call);
+        assertEquals(3, pickedElevator);
+        // 3 is ths the fastest elevator
+    }
+
+
+    @Test
+    public void roundRobinAllocate() {
+        int pickedElevator = lookAlgo.roundRobinAllocate();
+        assertEquals(0, pickedElevator);
+        pickedElevator = lookAlgo.roundRobinAllocate();
+        assertEquals(1, pickedElevator);
+        pickedElevator = lookAlgo.roundRobinAllocate();
+        assertEquals(2, pickedElevator);
     }
 
 

@@ -38,10 +38,10 @@ public class LookAlgo implements ElevatorAlgo {
         if (c.getType() == CallForElevator.UP) {
             for (int i = 0; i < building.numberOfElevetors(); i++) {
                 Elevator el = building.getElevetor(i);
-                if (callsManager[i].getDirection() == LookDs.UP && el.getPos() <= c.getSrc()) {
+                if (callsManager[i].getDirection() != LookDs.DOWN && el.getPos() <= c.getSrc()) {
                     if (pickedElevator == -1)
                         pickedElevator = i;
-                    else if (((LookDs) callsManager[pickedElevator]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c))
+                    else if (callsManager[pickedElevator].estimatedTimeToGet(c) > callsManager[i].estimatedTimeToGet(c))
                         pickedElevator = i;
                 }
             }
@@ -49,10 +49,10 @@ public class LookAlgo implements ElevatorAlgo {
             for (int i = 0; i < building.numberOfElevetors(); i++) {
                 Elevator el = building.getElevetor(i);
 
-                if (callsManager[i].getDirection() == LookDs.DOWN && el.getPos() >= c.getSrc()) {
+                if (callsManager[i].getDirection() != LookDs.UP && el.getPos() >= c.getSrc()) {
                     if (pickedElevator == -1)
                         pickedElevator = i;
-                    else if (((LookDs) callsManager[pickedElevator]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c))
+                    else if (callsManager[pickedElevator].estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c))
                         pickedElevator = i;
                 }
             }
@@ -100,7 +100,7 @@ public class LookAlgo implements ElevatorAlgo {
                     if (picked == -1)
                         picked = i;
                     else if (
-                            ((LookDs) callsManager[picked]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
+                            callsManager[picked].estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
                                     && !callsManager[i].hasActiveCalls()
                     ) {
                         picked = i;
@@ -114,7 +114,7 @@ public class LookAlgo implements ElevatorAlgo {
                     if (picked == -1)
                         picked = i;
                     else if (
-                            ((LookDs) callsManager[picked]).estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
+                            callsManager[picked].estimatedTimeToGet(c) > ((LookDs) callsManager[i]).estimatedTimeToGet(c)
                                     && !callsManager[i].hasActiveCalls()
                     ) {
                         picked = i;
@@ -161,7 +161,7 @@ public class LookAlgo implements ElevatorAlgo {
 
 
     // cycle allocation
-    private int roundRobinAllocate() {
+    public int roundRobinAllocate() {
         int ans = elevatorAllocation % building.numberOfElevetors();
         elevatorAllocation = (elevatorAllocation + 1) % (building.numberOfElevetors());
         return ans;
