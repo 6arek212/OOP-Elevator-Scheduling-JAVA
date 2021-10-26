@@ -10,11 +10,11 @@ public class LookAlgo implements ElevatorAlgo {
     private Building building;
     private String algoName = "Scan";
     private int elevatorAllocation;
-    private CustomDataStructure[] callsManager;
+    private LookDs[] callsManager;
 
     public LookAlgo(Building building) {
         this.building = building;
-        callsManager = new CustomDataStructure[building.numberOfElevetors()];
+        callsManager = new LookDs[building.numberOfElevetors()];
         for (int i = 0; i < building.numberOfElevetors(); i++) {
             callsManager[i] = new LookDs(building.getElevetor(i));
         }
@@ -62,7 +62,7 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    // get the fastest idle elevator that can get this call
+    // get the idle elevator that can get to this call with the best time
     public int getFastestStaticElevator(CallForElevator c) {
         int picked = -1;
         double pickedTime = -1;
@@ -90,7 +90,7 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
-    // if there is an UP call and no elevator can pick it up then get the fastest DOWN elevator that can go to this call
+    // if there is an UP call and no elevator can picked it up then get the fastest DOWN elevator that can go to this call
     public int getOptimal(CallForElevator c) {
         int picked = -1;
 
@@ -121,7 +121,6 @@ public class LookAlgo implements ElevatorAlgo {
                     }
                 }
             }
-
         }
 
         return picked;
@@ -161,6 +160,7 @@ public class LookAlgo implements ElevatorAlgo {
     }
 
 
+    // cycle allocation
     private int roundRobinAllocate() {
         int ans = elevatorAllocation % building.numberOfElevetors();
         elevatorAllocation = (elevatorAllocation + 1) % (building.numberOfElevetors());
@@ -171,7 +171,7 @@ public class LookAlgo implements ElevatorAlgo {
     @Override
     public void cmdElevator(int elev) {
         Elevator el = building.getElevetor(elev);
-        CustomDataStructure callManager = callsManager[elev];
+        LookDs callManager = callsManager[elev];
 
 
         if (el.getState() == Elevator.LEVEL) {
