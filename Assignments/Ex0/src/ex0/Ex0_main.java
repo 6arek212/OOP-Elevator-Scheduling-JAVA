@@ -19,7 +19,6 @@ import ex0.simulator.Simulator_A;
 //        Code Owners,207154261,315201327,  Case,2,  Total waiting time: 5308.792822120196,  average waiting time per call: 53.08792822120196,  unCompleted calls,5,  certificate, -1805901051
 //        Code Owners,207154261,315201327,  Case,1,  Total waiting time: 327.9897426188186,  average waiting time per call: 32.79897426188186,  unCompleted calls,4,  certificate, -1187239726
 //        Code Owners,207154261,315201327,  Case,0,  Total waiting time: 213.9897426188186,  average waiting time per call: 21.39897426188186,  unCompleted calls,0,  certificate, -743781020
-//
 
 
 
