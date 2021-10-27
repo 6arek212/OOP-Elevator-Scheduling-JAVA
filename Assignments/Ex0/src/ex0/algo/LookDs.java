@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class LookDs {
-    final static int UP = 1, DOWN = -1, LEVEL = 0;
+    final static int UP = 1, DOWN = -1, LEVEL = 0, ACTIVE = 0;
 
     private ArrayList<Integer> activeCalls;
     private ArrayList<Integer> downCalls;
     private ArrayList<Integer> upCalls;
-    private int direction;
+    private int direction = 0;
     private Elevator elevator;
     private int goingTo;
 
@@ -32,7 +32,6 @@ public class LookDs {
     }
 
 
-    //elevator stopped at its current position
     public void stopped() {
         if (elevator.getPos() != goingTo)
             sortedInsert(goingTo, activeCalls);
@@ -59,6 +58,7 @@ public class LookDs {
 
 
     public void add(CallForElevator c) {
+
         // active calls empty
         if (activeCalls.isEmpty() && downCalls.isEmpty() && upCalls.isEmpty()) {
             if (c.getType() == CallForElevator.UP)
@@ -70,6 +70,7 @@ public class LookDs {
             sortedInsert(c.getDest(), activeCalls);
             return;
         }
+
 
         //ON THE WAY
         if (c.getSrc() >= elevator.getPos() && c.getType() == CallForElevator.UP && direction == UP ||
@@ -136,51 +137,47 @@ public class LookDs {
     }
 
 
-    // calculate the estimated time to get to this call
-    public double estimatedTimeToGet(CallForElevator call) {
-        double time = 0;
-        if (direction == LEVEL) {
-            time += dist(elevator.getPos(), call.getSrc()) / elevator.getSpeed();
-        }
-
+    public int estimatedTimeToGet(CallForElevator call) {
+        int time = 0;
         // if it on the way -> time till get to this call
-        if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc() ||
-                direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
+        if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc()) {
             time = estimatedTimeToGet(call.getSrc());
         }
-        // active + waiting
-        else if (direction == UP && call.getType() == CallForElevator.DOWN ||
-                direction == DOWN && call.getType() == CallForElevator.UP) {
-            if (direction == UP)
-                time += waitingDown(call.getSrc());
-            else
-                time += waitingUp(call.getSrc());
-            time += timeToFinishActive();
-        }
 
+        // down -> active + call
+        else if (direction == DOWN && call.getType() == CallForElevator.UP || direction == UP && call.getType() == CallForElevator.DOWN) {
+            if (hasActiveCalls()) {
+                time += timeToFinishActive();
+                time += dist(getLast(), call.getSrc()) / elevator.getSpeed();
+            } else {
+                time += dist(elevator.getPos(), call.getSrc()) / elevator.getSpeed();
+            }
+
+        } else if (direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
+            time = estimatedTimeToGet(call.getSrc());
+        }
         return time;
     }
 
 
-    // time to finish active calls
-    private double timeToFinishActive() {
-        double time = 0;
+    public int timeToFinishActive() {
+        int time = 0;
         if (!activeCalls.isEmpty()) {
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
 
             if (goingTo != Integer.MAX_VALUE) {
-                if (elevator.getState() == Elevator.LEVEL) {
-                    time += elevator.getTimeForClose() + elevator.getStartTime();
-                }
                 time += elevator.getStopTime() + elevator.getTimeForClose();
                 time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
             }
 
             for (int j = 0; j < activeCalls.size(); j++) {
-                int i;
-                if (direction == UP) {
-                    i = j;
+                int i = 0;
+                if (direction == DOWN) {
+                    j = activeCalls.size() - j;
                 } else
-                    i = activeCalls.size() - 1 - j;
+                    i = j;
 
 
                 time += elevator.getStartTime() + elevator.getTimeForOpen();
@@ -205,78 +202,45 @@ public class LookDs {
         return time;
     }
 
-    // calculate waiting down up till this floor
-    private double waitingUp(int floor) {
-        double time = 0;
-        int i = 0;
-        for (; i < upCalls.size() && upCalls.get(i) < floor; i++) {
-            if (i == 0) {
-                if (hasActiveCalls())
-                    time += dist(getLast(), upCalls.get(i)) / elevator.getSpeed();
-                else
-                    time += dist(elevator.getPos(), upCalls.get(i)) / elevator.getSpeed();
-            } else {
-                time += dist(upCalls.get(i - 1), upCalls.get(i)) / elevator.getSpeed();
-            }
-            time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
-        }
 
-        return time;
-    }
-
-    // calculate waiting down time till this floor
-    private double waitingDown(int floor) {
-        double time = 0;
-        int i = downCalls.size() - 1;
-        for (; i >= 0 && downCalls.get(i) > floor; i--) {
-            if (i == downCalls.size() - 1) {
-                if (hasActiveCalls())
-                    time += dist(getLast(), downCalls.get(i)) / elevator.getSpeed();
-                else
-                    time += dist(elevator.getPos(), downCalls.get(i)) / elevator.getSpeed();
-            } else {
-                time += dist(downCalls.get(i + 1), downCalls.get(i)) / elevator.getSpeed();
-            }
-            time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
-        }
-        return time;
-    }
-
-    // time to get to this floor
-    private double estimatedTimeToGet(int floor) {
-        double time = 0;
-
-        if (goingTo != Integer.MAX_VALUE) {
+    private int estimatedTimeToGet(int floor) {
+        int time = 0;
+        if (direction == UP && !activeCalls.isEmpty()) {
             if (elevator.getState() == Elevator.LEVEL) {
                 time += elevator.getTimeForClose() + elevator.getStartTime();
             }
-            time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
-        }
 
-        if (direction == UP) {
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
+
             for (int i = 0; i < activeCalls.size() && activeCalls.get(i) < floor; i++) {
                 if (i == 0) {
-                    if (goingTo != Integer.MAX_VALUE) {
-                        time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
-                    } else {
-                        time += dist(elevator.getPos(), activeCalls.get(i)) / elevator.getSpeed();
-                    }
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
 
                 } else {
                     time += dist(activeCalls.get(i - 1), activeCalls.get(i)) / elevator.getSpeed();
+
                 }
                 time += elevator.getStopTime() + elevator.getTimeForOpen() + elevator.getTimeForClose() + elevator.getStartTime();
+
+
             }
 
-        } else {
+        } else if (direction == DOWN) {
+
+            if (elevator.getState() == Elevator.LEVEL) {
+                time += elevator.getTimeForClose() + elevator.getStartTime();
+            }
+
+            if (goingTo != Integer.MAX_VALUE)
+                time += dist(goingTo, elevator.getPos()) / elevator.getSpeed();
+
 
             for (int i = activeCalls.size() - 1; i >= 0 && activeCalls.get(i) > floor; i--) {
                 if (i == activeCalls.size() - 1) {
-                    if (goingTo != Integer.MAX_VALUE) {
-                        time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
-                    } else {
-                        time += dist(elevator.getPos(), activeCalls.get(i)) / elevator.getSpeed();
-                    }
+                    time += dist(goingTo, activeCalls.get(i)) / elevator.getSpeed();
+
                 } else {
                     time += dist(activeCalls.get(i + 1), activeCalls.get(i)) / elevator.getSpeed();
                 }
