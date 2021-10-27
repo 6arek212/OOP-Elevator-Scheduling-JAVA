@@ -1,0 +1,87 @@
+@startuml
+
+class LookAlgo{
+        Building building;
+        String algoName;
+        int elevatorAllocation;
+        LookDs[] callsManager;
+        int getPickUpElevator(CallForElevator)
+        int getFastestStaticElevator(CallForElevator)
+        int getOptimal(CallForElevator)
+        int roundRobinAllocate()
+        int dist(CallForElevator,int elev)
+        int allocateAnElevator(CallForElevator)
+        void cmdElevator()
+}
+
+
+class LookDs{
+         - ArrayList<Integer> activeCalls;
+          -ArrayList<Integer> downCalls;
+         - ArrayList<Integer> upCalls;
+         - int direction;
+         - Elevator elevator;
+          -int goingTo;
+          +double estimatedTimeToGet(CallForElevator)
+          +int getLast()
+          +int getFirst()
+          +int getDirection()
+           +int popLast()
+           +int popFirst()
+           +boolean hasActiveCalls()
+           +int numberOfCalls()
+          +int getNext()
+          +void stopped()
+          +void add(CallForElevator)
+          -void feedCalls()
+          -void sortedInsert(int, ArrayList<Integer>)
+
+}
+
+LookAlgo "1" *-- "many" LookDs
+
+LookAlgo "1" *-- "1" Building
+
+
+
+interface Building{
+    String getBuildingName()
+    int minFloor()
+    int maxFloor()
+    int numberOfElevetors()
+    Elevator getElevetor(int)
+}
+
+
+LookDs "1" *-- "many" CallForElevator
+
+
+interface CallForElevator{
+    int getState()
+    double getTime(int state)
+    int getDest()
+    int getType()
+    int getSrc()
+    int allocatedTo()
+}
+
+Building "1" *-- "many" Elevator
+LookDs "1" *-- "1" Elevator
+
+
+interface Elevator{
+    int getMinFloor()
+    int getMaxFloor()
+    double getTimeForOpen()
+    double getTimeForClose()
+    int getState()
+    int getPos()
+    boolean goTo(int floor)
+    boolean stop(int floor)
+    double getSpeed()
+    double getStartTime()
+    double getStopTime()
+}
+
+@enduml
+
