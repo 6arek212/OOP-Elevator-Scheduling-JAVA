@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class LookDs {
-    final static int UP = 1, DOWN = -1, LEVEL = 0, ACTIVE = 0;
+    final static int UP = 1, DOWN = -1, LEVEL = 0;
 
     private ArrayList<Integer> activeCalls;
     private ArrayList<Integer> downCalls;
