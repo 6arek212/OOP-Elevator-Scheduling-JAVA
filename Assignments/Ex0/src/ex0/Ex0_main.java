@@ -8,12 +8,12 @@ import ex0.simulator.Simulator_A;
  * starting to implement the algorithm.
  */
 public class Ex0_main {
-    public static Long ID0 = 207154261L, ID1 = null, ID2 = null;
+    public static Long ID0 = 207154261L, ID1 = 315201327L, ID2 = null;
 
     public static void main(String[] ar) {
         String codeOwner = codeOwner();
         Simulator_A.setCodeOwner(codeOwner);
-        int stage = 7;  // any case in [0,9].
+        int stage = 9;  // any case in [0,9].
         System.out.println("Ex0 Simulator: isStarting, stage=" + stage + ") ... =  ");
         String callFile = null; // use the predefined cases [1-9].
         // String callFile = "data/Ex0_stage_2__.csv"; //

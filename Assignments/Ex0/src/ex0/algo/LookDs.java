@@ -144,22 +144,18 @@ public class LookDs {
         }
 
         // if it on the way -> time till get to this call
-        if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc()) {
-            time = estimatedTimeToGet(call.getSrc());
-        } else if (direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
+        if (direction == UP && call.getType() == CallForElevator.UP && elevator.getPos() <= call.getSrc() ||
+                direction == DOWN && call.getType() == CallForElevator.DOWN && elevator.getPos() >= call.getSrc()) {
             time = estimatedTimeToGet(call.getSrc());
         }
-        // down -> active + call
-        else if (direction == UP && call.getType() == CallForElevator.DOWN) {
-            time += waitingDown(call.getSrc());
-            if (hasActiveCalls()) {
-                time += timeToFinishActive();
-            }
-        } else if (direction == DOWN && call.getType() == CallForElevator.UP) {
-            time += waitingUp(call.getSrc());
-            if (hasActiveCalls()) {
-                time += timeToFinishActive();
-            }
+        // active + waiting
+        else if (direction == UP && call.getType() == CallForElevator.DOWN ||
+                direction == DOWN && call.getType() == CallForElevator.UP) {
+            if (direction == UP)
+                time += waitingDown(call.getSrc());
+            else
+                time += waitingUp(call.getSrc());
+            time += timeToFinishActive();
         }
 
         return time;
