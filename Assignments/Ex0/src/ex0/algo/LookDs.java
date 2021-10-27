@@ -21,8 +21,8 @@ public class LookDs {
     public LookDs(Elevator elevator) {
         this.elevator = elevator;
         this.activeCalls = new ArrayList<>();
-        this.downCalls = new ArrayList<>();
         this.upCalls = new ArrayList<>();
+        this.downCalls = new ArrayList<>();
         this.direction = LEVEL;
     }
 

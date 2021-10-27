@@ -5,8 +5,6 @@ import ex0.CallForElevator;
 import ex0.Elevator;
 
 public class LookAlgo implements ElevatorAlgo {
-    public static final int UP = 1, DOWN = -1, LEVEL = 0;
-
     private Building building;
     private String algoName = "Scan";
     private int elevatorAllocation;
